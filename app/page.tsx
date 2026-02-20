@@ -82,13 +82,13 @@ export default function HomePage() {
               <span className="w-2 h-2 bg-accent-400 rounded-full animate-pulse" />
               철구조물 전문 제작 · 시공
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight mb-6">
+            <h1 className="text-2xl sm:text-4xl md:text-6xl font-extrabold text-white leading-tight mb-6">
               디테일을 놓치지 않는 설계와 시공으로 완성도 높은
               <br />
               <span className="text-accent-400">철구조물</span>
               을 만들어 드립니다
             </h1>
-            <p className="text-steel-300 text-lg md:text-xl leading-relaxed mb-10 max-w-2xl">
+            <p className="text-steel-300 text-sm sm:text-lg md:text-xl leading-relaxed mb-10 max-w-2xl">
               휀스, 난간, 대문, 데크, 금속구조물까지
               <br className="hidden sm:block" />
               고객의 요구에 맞춘 책임 시공을 약속드립니다.
@@ -113,7 +113,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-steel-400 animate-bounce">
+        <div className="absolute bottom-8 left-0 right-0 flex flex-col items-center gap-2 text-steel-400 animate-bounce">
           <span className="text-xs">스크롤</span>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
