@@ -435,14 +435,14 @@ function renderBlockToHtml(block: RawBlock, entityMap: RawEntityMap): string {
     .join('');
 
   switch (type) {
-    case 'header-one':   return `<h1>${innerHtml}</h1>`;
-    case 'header-two':   return `<h2>${innerHtml}</h2>`;
-    case 'header-three': return `<h3>${innerHtml}</h3>`;
+    case 'header-one':   return `<h1 style="font-size:1.875rem;font-weight:800;line-height:1.25;margin:1rem 0 0.5rem;">${innerHtml}</h1>`;
+    case 'header-two':   return `<h2 style="font-size:1.5rem;font-weight:700;line-height:1.3;margin:0.875rem 0 0.4rem;">${innerHtml}</h2>`;
+    case 'header-three': return `<h3 style="font-size:1.25rem;font-weight:600;line-height:1.4;margin:0.75rem 0 0.35rem;">${innerHtml}</h3>`;
     case 'blockquote':
       return `<blockquote style="border-left:4px solid #f97316;padding-left:1rem;color:#6b7280;font-style:italic;margin:8px 0;">${innerHtml}</blockquote>`;
     case 'unordered-list-item': return `<li>${innerHtml}</li>`;
     case 'ordered-list-item':   return `<li>${innerHtml}</li>`;
-    default: return `<p>${innerHtml}</p>`;
+    default: return `<p style="margin:0.3rem 0;">${innerHtml}</p>`;
   }
 }
 

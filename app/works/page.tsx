@@ -2,23 +2,23 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getWorks, getWorksByCategory } from '@/lib/storage';
-import { WorkPost, WorkCategory, CATEGORIES } from '@/lib/types';
+import { getWorks } from '@/lib/storage';
+import { WorkPost, CATEGORIES } from '@/lib/types';
 import WorkCard from '@/components/WorkCard';
 
 function WorksContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
-  const [works, setWorks] = useState<WorkPost[]>([]);
+  const [allWorks, setAllWorks] = useState<WorkPost[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>(categoryParam ?? 'all');
 
   useEffect(() => {
-    if (activeCategory === 'all') {
-      setWorks(getWorks());
-    } else {
-      setWorks(getWorksByCategory(activeCategory as WorkCategory));
-    }
-  }, [activeCategory]);
+    getWorks().then(setAllWorks);
+  }, []);
+
+  const works = activeCategory === 'all'
+    ? allWorks
+    : allWorks.filter((w) => w.category === activeCategory);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

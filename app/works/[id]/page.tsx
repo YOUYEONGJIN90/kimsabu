@@ -14,12 +14,13 @@ export default function WorkDetailPage() {
   const [lightbox, setLightbox] = useState(false);
 
   useEffect(() => {
-    const found = getWork(id);
-    if (!found) {
-      router.replace('/works');
-    } else {
-      setWork(found);
-    }
+    getWork(id).then((found) => {
+      if (!found) {
+        router.replace('/works');
+      } else {
+        setWork(found);
+      }
+    });
   }, [id, router]);
 
   if (!work) return null;
@@ -31,18 +32,20 @@ export default function WorkDetailPage() {
       {/* 헤더 */}
       <div className="bg-steel-900 py-14 md:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            href="/works"
-            className="inline-flex items-center gap-2 text-steel-400 hover:text-white transition-colors mb-6 text-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            시공사례 목록
-          </Link>
-          <span className="inline-block bg-accent-500/20 text-accent-400 text-xs font-semibold px-3 py-1 rounded-full mb-4">
-            {CATEGORY_LABELS[work.category]}
-          </span>
+          <div className="flex flex-col items-start gap-3 mb-6">
+            <Link
+              href="/works"
+              className="inline-flex items-center gap-2 text-steel-400 hover:text-white transition-colors text-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              시공사례 목록
+            </Link>
+            <span className="inline-block bg-accent-500/20 text-accent-400 text-xs font-semibold px-3 py-1 rounded-full">
+              {CATEGORY_LABELS[work.category]}
+            </span>
+          </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-3">{work.title}</h1>
           {work.summary && (
             <p className="text-steel-400 text-lg">{work.summary}</p>
@@ -73,7 +76,7 @@ export default function WorkDetailPage() {
         {/* 본문 */}
         {htmlContent && (
           <div
-            className="prose prose-steel max-w-none text-steel-700 leading-relaxed"
+            className="text-steel-700 leading-relaxed [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-2 [&_li]:my-1 [&_strong]:font-bold [&_em]:italic"
             dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
         )}

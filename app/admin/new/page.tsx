@@ -100,7 +100,7 @@ export default function NewWorkPage() {
       updatedAt: new Date().toISOString(),
     };
 
-    saveWork(work);
+    await saveWork(work);
     router.push('/admin');
   };
 

@@ -50,8 +50,7 @@ export default function HomePage() {
   const [recentWorks, setRecentWorks] = useState<WorkPost[]>([]);
 
   useEffect(() => {
-    const works = getWorks().slice(0, 3);
-    setRecentWorks(works);
+    getWorks().then((works) => setRecentWorks(works.slice(0, 3)));
   }, []);
 
   return (

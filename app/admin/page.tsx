@@ -3,24 +3,24 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getWorks, deleteWork } from '@/lib/storage';
-import { WorkPost, WorkCategory, CATEGORY_LABELS, CATEGORIES } from '@/lib/types';
+import { WorkPost, CATEGORY_LABELS, CATEGORIES } from '@/lib/types';
 
 export default function AdminPage() {
   const [allWorks, setAllWorks] = useState<WorkPost[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
 
   useEffect(() => {
-    setAllWorks(getWorks());
+    getWorks().then(setAllWorks);
   }, []);
 
   const works = activeCategory === 'all'
     ? allWorks
     : allWorks.filter((w) => w.category === activeCategory);
 
-  const handleDelete = (id: string, title: string) => {
+  const handleDelete = async (id: string, title: string) => {
     if (!confirm(`"${title}"을(를) 삭제하시겠습니까?`)) return;
-    deleteWork(id);
-    setAllWorks(getWorks());
+    await deleteWork(id);
+    setAllWorks(await getWorks());
   };
 
   return (
@@ -56,18 +56,16 @@ export default function AdminPage() {
               <button
                 key={cat.value}
                 onClick={() => setActiveCategory(cat.value)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all border ${
-                  activeCategory === cat.value
+                className={`flex items-center gap-1 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all border ${activeCategory === cat.value
                     ? 'bg-steel-900 text-white border-steel-900'
                     : 'bg-white text-steel-600 border-steel-200 hover:border-steel-400'
-                }`}
+                  }`}
               >
                 {cat.icon} {cat.label}
-                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                  activeCategory === cat.value
+                <span className={`text-xs px-1 py-0.5 sm:px-1.5 rounded-full ${activeCategory === cat.value
                     ? 'bg-white/20 text-white'
                     : 'bg-steel-100 text-steel-500'
-                }`}>
+                  }`}>
                   {count}
                 </span>
               </button>
@@ -99,7 +97,7 @@ export default function AdminPage() {
             <table className="w-full">
               <thead className="bg-steel-50 border-b border-steel-100">
                 <tr>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-steel-600">썸네일</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-steel-600 hidden sm:table-cell">썸네일</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-steel-600">제목</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-steel-600 hidden sm:table-cell">카테고리</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-steel-600 hidden md:table-cell">등록일</th>
@@ -109,7 +107,7 @@ export default function AdminPage() {
               <tbody className="divide-y divide-steel-100">
                 {works.map((work) => (
                   <tr key={work.id} className="hover:bg-steel-50 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 hidden sm:table-cell">
                       <div className="w-16 h-12 rounded-lg overflow-hidden bg-steel-100 flex-shrink-0">
                         {work.thumbnail ? (
                           <img
@@ -144,7 +142,6 @@ export default function AdminPage() {
                           href={`/works/${work.id}`}
                           className="p-2 text-steel-400 hover:text-steel-600 hover:bg-steel-100 rounded-lg transition-colors"
                           title="미리보기"
-                          target="_blank"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

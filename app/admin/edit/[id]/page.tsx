@@ -58,18 +58,19 @@ export default function EditWorkPage() {
   const thumbnailRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const work = getWork(id);
-    if (!work) {
-      router.replace('/admin');
-      return;
-    }
-    setOriginalWork(work);
-    setForm({
-      title: work.title,
-      category: work.category,
-      summary: work.summary,
-      content: work.content,
-      thumbnail: work.thumbnail,
+    getWork(id).then((work) => {
+      if (!work) {
+        router.replace('/admin');
+        return;
+      }
+      setOriginalWork(work);
+      setForm({
+        title: work.title,
+        category: work.category,
+        summary: work.summary,
+        content: work.content,
+        thumbnail: work.thumbnail,
+      });
     });
   }, [id, router]);
 
@@ -116,7 +117,7 @@ export default function EditWorkPage() {
       updatedAt: new Date().toISOString(),
     };
 
-    saveWork(work);
+    await saveWork(work);
     router.push('/admin');
   };
 
