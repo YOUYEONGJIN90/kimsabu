@@ -1,42 +1,21 @@
 import { WorkPost, WorkCategory } from './types';
 import { supabase } from './supabase';
 
-// ── 인메모리 캐시 ─────────────────────────────────────────────────────────────
-// 모듈 레벨에 저장 → 컴포넌트 리렌더 간 유지, saveWork/deleteWork 호출 시 초기화
-let cache: WorkPost[] | null = null;
-
-function invalidateCache() {
-  cache = null;
-}
-
-// ── 조회 ──────────────────────────────────────────────────────────────────────
+// ── 읽기: API 라우트 경유 → Next.js 서버 캐시(unstable_cache) 활용 ────────────
+// 모든 사용자가 서버에서 캐시된 동일한 응답을 받음
 
 export async function getWorks(): Promise<WorkPost[]> {
-  if (cache !== null) return cache;
-
-  const { data, error } = await supabase
-    .from('works')
-    .select('*')
-    .order('created_at', { ascending: false });
-  if (error) { console.error('getWorks error:', error); return []; }
-
-  cache = (data ?? []).map(toWorkPost);
-  return cache;
+  const res = await fetch('/api/works');
+  if (!res.ok) return [];
+  const rows = (await res.json()) as Record<string, unknown>[];
+  return rows.map(toWorkPost);
 }
 
 export async function getWork(id: string): Promise<WorkPost | null> {
-  // 캐시에 전체 목록이 있으면 거기서 찾음
-  if (cache !== null) {
-    return cache.find((w) => w.id === id) ?? null;
-  }
-
-  const { data, error } = await supabase
-    .from('works')
-    .select('*')
-    .eq('id', id)
-    .single();
-  if (error) { console.error('getWork error:', error); return null; }
-  return data ? toWorkPost(data) : null;
+  const res = await fetch(`/api/works/${id}`);
+  if (!res.ok) return null;
+  const row = (await res.json()) as Record<string, unknown> | null;
+  return row ? toWorkPost(row) : null;
 }
 
 export async function getWorksByCategory(category: WorkCategory): Promise<WorkPost[]> {
@@ -44,7 +23,9 @@ export async function getWorksByCategory(category: WorkCategory): Promise<WorkPo
   return all.filter((w) => w.category === category);
 }
 
-// ── 변경 (캐시 초기화) ────────────────────────────────────────────────────────
+// ── 쓰기: Supabase 직접 변경 후 서버 캐시 무효화 ─────────────────────────────
+// 이미지가 base64로 커서 API 라우트를 거치지 않고 Supabase 직접 전송
+// 변경 완료 후 /api/revalidate 호출 → revalidateTag('works')
 
 export async function saveWork(work: WorkPost): Promise<void> {
   const { error } = await supabase.from('works').upsert({
@@ -58,13 +39,13 @@ export async function saveWork(work: WorkPost): Promise<void> {
     updated_at: work.updatedAt,
   });
   if (error) { console.error('saveWork error:', error); return; }
-  invalidateCache();
+  await fetch('/api/revalidate', { method: 'POST' });
 }
 
 export async function deleteWork(id: string): Promise<void> {
   const { error } = await supabase.from('works').delete().eq('id', id);
   if (error) { console.error('deleteWork error:', error); return; }
-  invalidateCache();
+  await fetch('/api/revalidate', { method: 'POST' });
 }
 
 // ── 내부 유틸 ─────────────────────────────────────────────────────────────────
