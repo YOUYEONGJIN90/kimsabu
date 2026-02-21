@@ -8,7 +8,10 @@ export async function getWorks(): Promise<WorkPost[]> {
   const res = await fetch('/api/works');
   if (!res.ok) return [];
   const rows = (await res.json()) as Record<string, unknown>[];
-  return rows.map(toWorkPost);
+  return rows.map((row) => ({
+    ...toWorkPost(row),
+    thumbnail: `/api/thumbnails/${row.id as string}`,
+  }));
 }
 
 export async function getWork(id: string): Promise<WorkPost | null> {
