@@ -14,7 +14,9 @@
       "Bash(tee:*)",
       "Read(//tmp/**)",
       "Bash(curl:*)",
-      "Bash(node scripts/update-content.mjs:*)"
+      "Bash(node scripts/update-content.mjs:*)",
+      "Bash(where:*)",
+      "Bash(npm list:*)"
     ]
   }
 }

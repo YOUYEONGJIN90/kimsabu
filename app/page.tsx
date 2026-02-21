@@ -40,8 +40,8 @@ const services = [
 ];
 
 const stats = [
-  { value: '20+', label: '시공 경력' },
-  { value: '1,500+', label: '완료 프로젝트' },
+  { value: '빠른 시공', label: '일정 맞춤 진행' },
+  { value: '원스톱', label: '상담·실측·시공 한번에' },
   { value: '100%', label: '고객 만족' },
   { value: '전국', label: '시공 가능' },
 ];
