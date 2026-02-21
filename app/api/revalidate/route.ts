@@ -1,7 +1,9 @@
-import { revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 export async function POST() {
-  revalidateTag('works', 'max');
+  revalidatePath('/api/works');
+  revalidatePath('/works');
+  revalidatePath('/');
   return NextResponse.json({ ok: true });
 }

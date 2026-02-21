@@ -1,7 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(git -C /c/workspace/kimsabu log --oneline -10)",
+      "Bash(git -C /c/workspace/kimsabu diff --name-only HEAD)",
+      "WebFetch(domain:rss.blog.naver.com)",
+      "WebFetch(domain:blog.naver.com)",
+      "WebFetch(domain:m.blog.naver.com)",
+      "Bash(node --version:*)",
+      "Bash(node scripts/crawl-naver-blog.mjs:*)",
+      "Bash(node -e:*)",
+      "Bash(node --input-type=module:*)",
+      "Bash(tee:*)",
+      "Read(//tmp/**)",
+      "Bash(curl:*)",
+      "Bash(node scripts/update-content.mjs:*)"
     ]
   }
 }

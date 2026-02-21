@@ -52,18 +52,18 @@ export default function Footer() {
               <li className="flex items-start gap-2">
                 <span className="text-accent-500 mt-0.5">📞</span>
                 <div>
-                  <div className="text-white font-medium">010-0000-0000</div>
+                  <div className="text-white font-medium">010-9132-8489</div>
                   <div className="text-steel-500 text-xs">평일 08:00 ~ 18:00</div>
                 </div>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-accent-500 mt-0.5">📍</span>
-                <div className="text-steel-400">경기도 OO시 OO구 OO동</div>
+                <div className="text-steel-400">경기 남양주시 진접읍 부평리 772</div>
               </li>
-              <li className="flex items-start gap-2">
+              {/* <li className="flex items-start gap-2">
                 <span className="text-accent-500 mt-0.5">✉️</span>
                 <div className="text-steel-400">kimsabu@email.com</div>
-              </li>
+              </li> */}
             </ul>
           </div>
         </div>

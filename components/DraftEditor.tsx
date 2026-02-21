@@ -377,6 +377,18 @@ type RawBlock = {
 
 type RawEntityMap = Record<string, { type: string; data: Record<string, string> }>;
 
+const NAVER_IMG_HOSTS = ['postfiles.pstatic.net', 'blogfiles.pstatic.net', 'blogthumb.pstatic.net'];
+
+function toProxySrc(src: string): string {
+  try {
+    const { hostname } = new URL(src);
+    if (NAVER_IMG_HOSTS.includes(hostname)) {
+      return `/api/img-proxy?url=${encodeURIComponent(src)}`;
+    }
+  } catch {}
+  return src;
+}
+
 function renderBlockToHtml(block: RawBlock, entityMap: RawEntityMap): string {
   const { text, type, inlineStyleRanges, entityRanges } = block;
 
@@ -385,7 +397,8 @@ function renderBlockToHtml(block: RawBlock, entityMap: RawEntityMap): string {
     if (entityRange !== undefined) {
       const entity = entityMap[entityRange.key];
       if (entity?.type === 'IMAGE') {
-        return `<figure style="margin:12px 0;text-align:center;"><img src="${entity.data.src}" style="max-width:100%;border-radius:8px;" /></figure>`;
+        const src = toProxySrc(entity.data.src);
+        return `<figure style="margin:12px 0;text-align:center;"><img src="${src}" style="max-width:100%;border-radius:8px;" /></figure>`;
       }
     }
     return '';

@@ -14,17 +14,6 @@ interface FormData {
   agree: boolean;
 }
 
-interface Inquiry {
-  id: string;
-  name: string;
-  phone: string;
-  email: string;
-  service: string;
-  location: string;
-  message: string;
-  createdAt: string;
-}
-
 export default function ContactPage() {
   const [form, setForm] = useState<FormData>({
     name: '',
@@ -36,6 +25,8 @@ export default function ContactPage() {
     agree: false,
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = (): boolean => {
@@ -51,37 +42,55 @@ export default function ContactPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
-    const inquiry: Inquiry = {
-      id: Date.now().toString(),
-      name: form.name,
-      phone: form.phone,
-      email: form.email,
-      service: form.service,
-      location: form.location,
-      message: form.message,
-      createdAt: new Date().toISOString(),
-    };
+    setLoading(true);
+    setSubmitError('');
 
-    const key = 'kimsabu_inquiries';
-    const existing = JSON.parse(localStorage.getItem(key) || '[]') as Inquiry[];
-    existing.unshift(inquiry);
-    localStorage.setItem(key, JSON.stringify(existing));
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          phone: form.phone,
+          email: form.email,
+          service: form.service,
+          location: form.location,
+          message: form.message,
+        }),
+      });
 
-    setSubmitted(true);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || '제출 중 오류가 발생했습니다.');
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : '제출 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatPhone = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (digits.length < 4) return digits;
+    if (digits.length < 8) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
   };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }));
+    const newValue = type === 'checkbox'
+      ? (e.target as HTMLInputElement).checked
+      : name === 'phone' ? formatPhone(value) : value;
+    setForm((prev) => ({ ...prev, [name]: newValue }));
     if (errors[name]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -150,9 +159,9 @@ export default function ContactPage() {
               <h2 className="text-xl font-bold text-steel-800 mb-4">연락처 안내</h2>
               <div className="space-y-4">
                 {[
-                  { icon: '📞', title: '전화', content: '010-0000-0000', sub: '평일 08:00 ~ 18:00' },
-                  { icon: '📍', title: '주소', content: '경기도 OO시 OO구 OO동', sub: '' },
-                  { icon: '✉️', title: '이메일', content: 'kimsabu@email.com', sub: '' },
+                  { icon: '📞', title: '전화', content: '010-9132-8489', sub: '평일 08:00 ~ 18:00' },
+                  { icon: '📍', title: '주소', content: '경기 남양주시 진접읍 부평리 772', sub: '' },
+                  // { icon: '✉️', title: '이메일', content: 'kimsabu@email.com', sub: '' },
                   { icon: '⏰', title: '운영시간', content: '평일 08:00 ~ 18:00', sub: '주말·공휴일 별도 문의' },
                 ].map((item) => (
                   <div key={item.title} className="flex gap-4 p-4 bg-steel-50 rounded-xl">
@@ -171,7 +180,7 @@ export default function ContactPage() {
               <h3 className="font-bold text-lg mb-2">빠른 상담이 필요하신가요?</h3>
               <p className="text-amber-100 text-sm mb-4">전화로 즉시 상담 가능합니다.</p>
               <a
-                href="tel:010-0000-0000"
+                href="tel:010-9132-8489"
                 className="flex items-center justify-center gap-2 bg-white text-accent-600 font-bold px-4 py-3 rounded-xl hover:bg-amber-50 transition-colors"
               >
                 📞 전화 상담하기
@@ -195,11 +204,10 @@ export default function ContactPage() {
                       value={form.name}
                       onChange={handleChange}
                       placeholder="홍길동"
-                      className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors outline-none ${
-                        errors.name
-                          ? 'border-red-400 bg-red-50 focus:border-red-500'
-                          : 'border-steel-200 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20'
-                      }`}
+                      className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors outline-none ${errors.name
+                        ? 'border-red-400 bg-red-50 focus:border-red-500'
+                        : 'border-steel-200 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20'
+                        }`}
                     />
                     {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                   </div>
@@ -208,16 +216,16 @@ export default function ContactPage() {
                       연락처 <span className="text-red-500">*</span>
                     </label>
                     <input
-                      type="tel"
+                      type="text"
+                      inputMode="numeric"
                       name="phone"
                       value={form.phone}
                       onChange={handleChange}
                       placeholder="010-0000-0000"
-                      className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors outline-none ${
-                        errors.phone
-                          ? 'border-red-400 bg-red-50 focus:border-red-500'
-                          : 'border-steel-200 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20'
-                      }`}
+                      className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors outline-none ${errors.phone
+                        ? 'border-red-400 bg-red-50 focus:border-red-500'
+                        : 'border-steel-200 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20'
+                        }`}
                     />
                     {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                   </div>
@@ -245,11 +253,10 @@ export default function ContactPage() {
                       name="service"
                       value={form.service}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors outline-none bg-white ${
-                        errors.service
-                          ? 'border-red-400 bg-red-50 focus:border-red-500'
-                          : 'border-steel-200 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20'
-                      }`}
+                      className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors outline-none bg-white ${errors.service
+                        ? 'border-red-400 bg-red-50 focus:border-red-500'
+                        : 'border-steel-200 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20'
+                        }`}
                     >
                       <option value="">선택해주세요</option>
                       {SERVICES.map((s) => (
@@ -284,11 +291,10 @@ export default function ContactPage() {
                     onChange={handleChange}
                     rows={5}
                     placeholder="시공 내용, 사이즈, 수량 등 구체적으로 적어주시면 정확한 견적을 드릴 수 있습니다."
-                    className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors outline-none resize-none ${
-                      errors.message
-                        ? 'border-red-400 bg-red-50 focus:border-red-500'
-                        : 'border-steel-200 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20'
-                    }`}
+                    className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors outline-none resize-none ${errors.message
+                      ? 'border-red-400 bg-red-50 focus:border-red-500'
+                      : 'border-steel-200 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20'
+                      }`}
                   />
                   {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message}</p>}
                 </div>
@@ -312,11 +318,16 @@ export default function ContactPage() {
                   {errors.agree && <p className="text-red-500 text-xs mt-1">{errors.agree}</p>}
                 </div>
 
+                {submitError && (
+                  <p className="text-red-500 text-sm text-center">{submitError}</p>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full bg-accent-500 hover:bg-accent-600 active:bg-accent-700 text-white font-bold py-4 rounded-xl text-lg transition-all duration-200 shadow-lg hover:shadow-accent-500/30"
+                  disabled={loading}
+                  className="w-full bg-accent-500 hover:bg-accent-600 active:bg-accent-700 disabled:bg-accent-300 text-white font-bold py-4 rounded-xl text-lg transition-all duration-200 shadow-lg hover:shadow-accent-500/30"
                 >
-                  견적 문의 제출하기
+                  {loading ? '제출 중...' : '견적 문의 제출하기'}
                 </button>
               </form>
             </div>

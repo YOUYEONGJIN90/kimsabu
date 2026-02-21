@@ -23,7 +23,49 @@ export default function WorkDetailPage() {
     });
   }, [id, router]);
 
-  if (!work) return null;
+  if (!work) return (
+    <div className="pt-16 md:pt-20 min-h-screen animate-pulse">
+      {/* 헤더 스켈레톤 */}
+      <div className="bg-steel-900 py-14 md:py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-start gap-3 mb-6">
+            <div className="h-4 w-24 bg-steel-700 rounded-full" />
+            <div className="h-6 w-16 bg-steel-700 rounded-full" />
+          </div>
+          <div className="h-8 w-3/4 bg-steel-700 rounded-lg mb-3" />
+          <div className="h-5 w-1/2 bg-steel-800 rounded-lg mb-4" />
+          <div className="h-4 w-28 bg-steel-800 rounded-full" />
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* 썸네일 스켈레톤 */}
+        <div className="mb-10 w-full h-72 md:h-[400px] bg-steel-100 rounded-2xl" />
+
+        {/* 본문 스켈레톤 */}
+        <div className="space-y-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className={`h-4 bg-steel-100 rounded ${i % 3 === 2 ? 'w-2/3' : 'w-full'}`} />
+          ))}
+          <div className="my-6 w-full h-56 bg-steel-100 rounded-xl" />
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className={`h-4 bg-steel-100 rounded ${i === 3 ? 'w-1/2' : 'w-full'}`} />
+          ))}
+          <div className="my-6 w-full h-56 bg-steel-100 rounded-xl" />
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className={`h-4 bg-steel-100 rounded ${i === 2 ? 'w-3/4' : 'w-full'}`} />
+          ))}
+        </div>
+
+        {/* CTA 스켈레톤 */}
+        <div className="mt-14 bg-steel-50 rounded-2xl p-8 flex flex-col items-center gap-4">
+          <div className="h-6 w-48 bg-steel-200 rounded-lg" />
+          <div className="h-4 w-64 bg-steel-200 rounded-lg" />
+          <div className="h-12 w-40 bg-steel-200 rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
 
   const htmlContent = work.content ? renderDraftContent(work.content) : '';
 

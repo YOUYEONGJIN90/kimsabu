@@ -282,7 +282,7 @@ export default function HomePage() {
                 <div className="space-y-4 mb-8">
                   <div className="flex items-center gap-3 text-steel-300">
                     <span className="text-accent-400">📞</span>
-                    <span className="text-xl font-bold text-white">010-0000-0000</span>
+                    <span className="text-xl font-bold text-white">010-9132-8489</span>
                   </div>
                   <div className="text-steel-400 text-sm">
                     평일 08:00 ~ 18:00 (주말·공휴일 상담 가능)
