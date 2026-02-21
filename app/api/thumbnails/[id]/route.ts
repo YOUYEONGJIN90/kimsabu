@@ -20,7 +20,7 @@ export async function GET(
   }
 
   // base64 data URL 파싱
-  const match = data.thumbnail.match(/^data:([^;]+);base64,(.+)$/s);
+  const match = data.thumbnail.match(/^data:([^;]+);base64,([\s\S]+)$/);
   if (!match) {
     return new NextResponse(null, { status: 400 });
   }
