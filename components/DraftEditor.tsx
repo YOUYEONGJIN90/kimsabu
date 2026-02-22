@@ -101,6 +101,45 @@ function blockRendererFn(block: ContentBlock) {
   return null;
 }
 
+const ALIGNMENT_TYPES = [
+  { alignment: 'left', title: '왼쪽 정렬', icon: AlignLeftIcon },
+  { alignment: 'center', title: '가운데 정렬', icon: AlignCenterIcon },
+  { alignment: 'right', title: '오른쪽 정렬', icon: AlignRightIcon },
+];
+
+function AlignLeftIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <line x1="1" y1="2" x2="13" y2="2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="1" y1="5.5" x2="9" y2="5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="1" y1="9" x2="11" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="1" y1="12.5" x2="7" y2="12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function AlignCenterIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <line x1="1" y1="2" x2="13" y2="2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="3" y1="5.5" x2="11" y2="5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="2" y1="9" x2="12" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="4" y1="12.5" x2="10" y2="12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function AlignRightIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <line x1="1" y1="2" x2="13" y2="2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="5" y1="5.5" x2="13" y2="5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="3" y1="9" x2="13" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="7" y1="12.5" x2="13" y2="12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function StyleButton({
   active,
   label,
@@ -196,6 +235,18 @@ export default function DraftEditor({ initialContent, onChange }: DraftEditorPro
     [editorState, handleChange]
   );
 
+  const applyAlignment = useCallback(
+    (alignment: string) => {
+      const contentState = editorState.getCurrentContent();
+      const sel = editorState.getSelection();
+      const block = contentState.getBlockForKey(sel.getStartKey());
+      const blockData = block.getData().set('text-align', alignment);
+      const newContentState = Modifier.setBlockData(contentState, sel, blockData);
+      handleChange(EditorState.push(editorState, newContentState, 'change-block-data'));
+    },
+    [editorState, handleChange]
+  );
+
   const insertImage = useCallback(
     async (file: File) => {
       if (!file.type.startsWith('image/')) return;
@@ -224,18 +275,32 @@ export default function DraftEditor({ initialContent, onChange }: DraftEditorPro
     COLOR_PRESETS.find(({ color }) => currentStyle.has(`COLOR_${color.replace('#', '')}`))?.color ??
     '#111111';
 
+  const currentAlignment =
+    (editorState
+      .getCurrentContent()
+      .getBlockForKey(selection.getStartKey())
+      .getData()
+      .get('text-align') as string | undefined) ?? 'left';
+
   const blockStyleFn = (block: ContentBlock) => {
+    const textAlign = block.getData().get('text-align') as string | undefined;
+    const alignClass =
+      textAlign === 'center' ? 'draft-align-center'
+      : textAlign === 'right' ? 'draft-align-right'
+      : textAlign === 'justify' ? 'draft-align-justify'
+      : '';
+
     switch (block.getType()) {
       case 'blockquote':
-        return 'border-l-4 border-accent-500 pl-4 my-2 text-steel-500 italic';
+        return `border-l-4 border-accent-500 pl-4 my-2 text-steel-500 italic${alignClass ? ` ${alignClass}` : ''}`;
       case 'header-one':
-        return 'text-2xl font-bold my-2';
+        return `text-2xl font-bold my-2${alignClass ? ` ${alignClass}` : ''}`;
       case 'header-two':
-        return 'text-xl font-bold my-2';
+        return `text-xl font-bold my-2${alignClass ? ` ${alignClass}` : ''}`;
       case 'header-three':
-        return 'text-lg font-semibold my-2';
+        return `text-lg font-semibold my-2${alignClass ? ` ${alignClass}` : ''}`;
       default:
-        return '';
+        return alignClass;
     }
   };
 
@@ -322,6 +387,27 @@ export default function DraftEditor({ initialContent, onChange }: DraftEditorPro
 
         <div className="w-px bg-steel-200 self-stretch" />
 
+        {/* 글자 정렬 */}
+        <div className="flex gap-1">
+          {ALIGNMENT_TYPES.map(({ alignment, title, icon: Icon }) => (
+            <button
+              key={alignment}
+              type="button"
+              onMouseDown={(e) => { e.preventDefault(); applyAlignment(alignment); }}
+              title={title}
+              className={`px-2 py-1.5 rounded transition-colors flex items-center justify-center ${
+                currentAlignment === alignment
+                  ? 'bg-accent-500 text-white'
+                  : 'bg-white text-steel-600 hover:bg-steel-100 border border-steel-200'
+              }`}
+            >
+              <Icon />
+            </button>
+          ))}
+        </div>
+
+        <div className="w-px bg-steel-200 self-stretch" />
+
         {/* 이미지 삽입 */}
         <button
           type="button"
@@ -373,6 +459,7 @@ type RawBlock = {
   type: string;
   inlineStyleRanges: Array<{ offset: number; length: number; style: string }>;
   entityRanges: Array<{ offset: number; length: number; key: number }>;
+  data?: Record<string, string>;
 };
 
 type RawEntityMap = Record<string, { type: string; data: Record<string, string> }>;
@@ -390,7 +477,9 @@ function toProxySrc(src: string): string {
 }
 
 function renderBlockToHtml(block: RawBlock, entityMap: RawEntityMap): string {
-  const { text, type, inlineStyleRanges, entityRanges } = block;
+  const { text, type, inlineStyleRanges, entityRanges, data } = block;
+  const alignment = data?.['text-align'];
+  const alignStyle = alignment ? `text-align:${alignment};` : '';
 
   if (type === 'atomic') {
     const entityRange = entityRanges[0];
@@ -448,14 +537,14 @@ function renderBlockToHtml(block: RawBlock, entityMap: RawEntityMap): string {
     .join('');
 
   switch (type) {
-    case 'header-one':   return `<h1 style="font-size:1.875rem;font-weight:800;line-height:1.25;margin:1rem 0 0.5rem;">${innerHtml}</h1>`;
-    case 'header-two':   return `<h2 style="font-size:1.5rem;font-weight:700;line-height:1.3;margin:0.875rem 0 0.4rem;">${innerHtml}</h2>`;
-    case 'header-three': return `<h3 style="font-size:1.25rem;font-weight:600;line-height:1.4;margin:0.75rem 0 0.35rem;">${innerHtml}</h3>`;
+    case 'header-one':   return `<h1 style="font-size:1.875rem;font-weight:800;line-height:1.25;margin:1rem 0 0.5rem;${alignStyle}">${innerHtml}</h1>`;
+    case 'header-two':   return `<h2 style="font-size:1.5rem;font-weight:700;line-height:1.3;margin:0.875rem 0 0.4rem;${alignStyle}">${innerHtml}</h2>`;
+    case 'header-three': return `<h3 style="font-size:1.25rem;font-weight:600;line-height:1.4;margin:0.75rem 0 0.35rem;${alignStyle}">${innerHtml}</h3>`;
     case 'blockquote':
-      return `<blockquote style="border-left:4px solid #f97316;padding-left:1rem;color:#6b7280;font-style:italic;margin:8px 0;">${innerHtml}</blockquote>`;
-    case 'unordered-list-item': return `<li>${innerHtml}</li>`;
-    case 'ordered-list-item':   return `<li>${innerHtml}</li>`;
-    default: return `<p style="margin:0.3rem 0;">${innerHtml}</p>`;
+      return `<blockquote style="border-left:4px solid #f97316;padding-left:1rem;color:#6b7280;font-style:italic;margin:8px 0;${alignStyle}">${innerHtml}</blockquote>`;
+    case 'unordered-list-item': return `<li style="${alignStyle}">${innerHtml}</li>`;
+    case 'ordered-list-item':   return `<li style="${alignStyle}">${innerHtml}</li>`;
+    default: return `<p style="margin:0.3rem 0;${alignStyle}">${innerHtml}</p>`;
   }
 }
 

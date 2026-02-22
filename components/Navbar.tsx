@@ -34,9 +34,11 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* 로고 */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-accent-500 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:bg-accent-600 transition-colors">
-              K
-            </div>
+            <img
+              src="/logo.svg"
+              alt="난간닥터 김사부 로고"
+              className="w-10 h-10 shadow-lg rounded-lg transition-opacity group-hover:opacity-85"
+            />
             <div>
               <div className="text-white font-bold text-lg leading-tight">난간닥터 김사부</div>
               <div className="text-steel-400 text-xs">철구조물 전문 시공</div>

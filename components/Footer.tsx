@@ -8,9 +8,11 @@ export default function Footer() {
           {/* 회사 정보 */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-accent-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-                K
-              </div>
+              <img
+                src="/logo.svg"
+                alt="난간닥터 김사부 로고"
+                className="w-10 h-10 rounded-lg"
+              />
               <div>
                 <div className="text-white font-bold text-lg leading-tight">난간닥터 김사부</div>
                 <div className="text-steel-500 text-xs">철구조물 전문 시공</div>

@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Draft.js 정렬 오버라이드 */
+.draft-align-center .public-DraftStyleDefault-ltr { text-align: center !important; }
+.draft-align-right  .public-DraftStyleDefault-ltr { text-align: right  !important; }
+.draft-align-justify .public-DraftStyleDefault-ltr { text-align: justify !important; }
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
