@@ -82,7 +82,9 @@ export default function HomePage() {
               철구조물 전문 제작 · 시공
             </div>
             <h1 className="text-2xl sm:text-4xl md:text-6xl font-extrabold text-white leading-tight mb-6">
-              디테일을 놓치지 않는 설계와 시공으로 완성도 높은
+              디테일을 놓치지 않는
+              <br />
+              설계와 시공으로 완성도 높은
               <br />
               <span className="text-accent-400">철구조물</span>
               을 만들어 드립니다
