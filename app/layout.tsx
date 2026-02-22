@@ -47,6 +47,7 @@ export default function RootLayout({
     <html lang="ko">
       <head>
         <meta name="google-site-verification" content="uxmIqR33M4s-0u6vhjRR-w0Jzq3ba_VMz4W5-OU_uOM" />
+        <meta name="naver-site-verification" content="82765c2b14208bbafb18ab8a137eb5ef055c7ede" />
       </head>
       <body className="flex flex-col min-h-screen">
         <Navbar />
