@@ -74,12 +74,6 @@ export default function Footer() {
           <p className="text-xs text-steel-500">
             © {new Date().getFullYear()} 난간닥터 김사부. All rights reserved.
           </p>
-          <Link
-            href="/admin"
-            className="text-xs text-steel-700 hover:text-steel-500 transition-colors"
-          >
-            관리자
-          </Link>
         </div>
       </div>
     </footer>
