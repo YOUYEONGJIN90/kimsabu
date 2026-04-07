@@ -5,7 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "works:backup": "node scripts/backup.mjs",
+    "works:process": "node scripts/process.mjs",
+    "works:process:dry": "node scripts/process.mjs --dry-run",
+    "works:enhance": "node scripts/ai-enhance.mjs",
+    "works:enhance:dry": "node scripts/ai-enhance.mjs --dry-run",
+    "works:restore": "node scripts/restore.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",

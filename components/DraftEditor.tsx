@@ -541,7 +541,7 @@ function renderBlockToHtml(block: RawBlock, entityMap: RawEntityMap): string {
     case 'header-two':   return `<h2 style="font-size:1.5rem;font-weight:700;line-height:1.3;margin:0.875rem 0 0.4rem;${alignStyle}">${innerHtml}</h2>`;
     case 'header-three': return `<h3 style="font-size:1.25rem;font-weight:600;line-height:1.4;margin:0.75rem 0 0.35rem;${alignStyle}">${innerHtml}</h3>`;
     case 'blockquote':
-      return `<blockquote style="border-left:4px solid #f97316;padding-left:1rem;color:#6b7280;font-style:italic;margin:8px 0;${alignStyle}">${innerHtml}</blockquote>`;
+      return `<p style="margin:0.3rem 0;${alignStyle}">${innerHtml}</p>`;
     case 'unordered-list-item': return `<li style="${alignStyle}">${innerHtml}</li>`;
     case 'ordered-list-item':   return `<li style="${alignStyle}">${innerHtml}</li>`;
     default: return `<p style="margin:0.3rem 0;${alignStyle}">${innerHtml}</p>`;

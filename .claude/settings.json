@@ -16,7 +16,12 @@
       "Bash(curl:*)",
       "Bash(node scripts/update-content.mjs:*)",
       "Bash(where:*)",
-      "Bash(npm list:*)"
+      "Bash(npm list:*)",
+      "Bash(node scripts/backup.mjs:*)",
+      "Bash(node scripts/process.mjs:*)",
+      "Bash(node scripts/fetch-contents.mjs:*)",
+      "Bash(node scripts/preview-contents.mjs:*)",
+      "Bash(node scripts/enhance-local.mjs:*)"
     ]
   }
 }
