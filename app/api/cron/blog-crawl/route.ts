@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export const maxDuration = 300; // 5분
+export const maxDuration = 1500; // 25분
 
 export async function GET(req: NextRequest) {
   // Vercel Cron 요청 검증
