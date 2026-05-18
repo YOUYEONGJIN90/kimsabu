@@ -3,9 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export const maxDuration = 300; // 5분 (Hobby 플랜 최대)
 
 export async function GET(req: NextRequest) {
-  // Vercel Cron 요청 검증
+  // Vercel Cron 요청 검증 — CRON_SECRET 미설정 시 항상 거부 (fail-closed)
+  const cronSecret = process.env.CRON_SECRET;
   const authHeader = req.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
