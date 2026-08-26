@@ -84,8 +84,9 @@ async function fetchFromRSS(yyyy: number, mm: number, dd: number): Promise<PostI
 
     const linkMatch = /<link>([\s\S]*?)<\/link>/.exec(chunk);
     const link = linkMatch?.[1]?.trim() ?? '';
+    // 링크 예: https://blog.naver.com/k_sabu/224390269122?fromRss=true&trackingCode=rss
     const logNo =
-      /\/(\d{8,})$/.exec(link)?.[1] ??
+      /\/(\d{8,})(?:[?#]|$)/.exec(link)?.[1] ??
       /logNo=(\d+)/.exec(link)?.[1] ??
       '';
 
@@ -108,6 +109,52 @@ interface NextDataPost {
   addDate: string;
 }
 
+
+/**
+ * Naver PostTitleListAsync의 addDate를 ISO(KST) 문자열로 정규화한다.
+ * - "2026. 4. 2."            → 절대 날짜 (하루 이상 지난 글)
+ * - "20260402123000"         → 절대 일시
+ * - "8시간 전" / "30분 전" / "방금 전" / "어제" / "2일 전"
+ *                            → 상대 시간 (24시간 이내 글은 네이버가 이 형식으로 내려줌)
+ * 파싱 불가 시 원문을 그대로 반환한다.
+ */
+function normalizeNaverAddDate(addDate: string): string {
+  const s = addDate.trim();
+
+  const dateM = /(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\./.exec(s);
+  if (dateM) {
+    return `${dateM[1]}-${dateM[2].padStart(2, '0')}-${dateM[3].padStart(2, '0')}T00:00:00+09:00`;
+  }
+
+  if (/^\d{14}$/.test(s)) {
+    return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}T${s.slice(8, 10)}:${s.slice(10, 12)}:${s.slice(12, 14)}+09:00`;
+  }
+
+  // 상대 시간 → 현재 시각 기준으로 역산
+  let offsetMs: number | null = null;
+  const relM = /^(\d+)\s*(초|분|시간|일|주)\s*전$/.exec(s);
+  if (relM) {
+    const n = parseInt(relM[1], 10);
+    const unitMs: Record<string, number> = {
+      초: 1000,
+      분: 60 * 1000,
+      시간: 60 * 60 * 1000,
+      일: 24 * 60 * 60 * 1000,
+      주: 7 * 24 * 60 * 60 * 1000,
+    };
+    offsetMs = n * unitMs[relM[2]];
+  } else if (/^방금/.test(s)) {
+    offsetMs = 0;
+  } else if (s === '어제') {
+    offsetMs = 24 * 60 * 60 * 1000;
+  }
+
+  if (offsetMs !== null) {
+    return new Date(Date.now() - offsetMs).toISOString();
+  }
+
+  return s;
+}
 
 interface ScrapeDebug {
   pages: Array<{ page: number; url: string; status: number; logNosFound: number; html200: boolean; htmlSnippet: string }>;
@@ -180,13 +227,7 @@ async function fetchFromNaverBlogApi(
     let allOlderThanTarget = true;
 
     for (const post of apiPosts) {
-      // addDate 형식: "2026. 4. 2." → ISO KST
-      const dateM = /(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\./.exec(post.addDate);
-      const normalized = dateM
-        ? `${dateM[1]}-${dateM[2].padStart(2, '0')}-${dateM[3].padStart(2, '0')}T00:00:00+09:00`
-        : post.addDate.length === 14
-          ? `${post.addDate.slice(0,4)}-${post.addDate.slice(4,6)}-${post.addDate.slice(6,8)}T${post.addDate.slice(8,10)}:${post.addDate.slice(10,12)}:${post.addDate.slice(12,14)}+09:00`
-          : post.addDate;
+      const normalized = normalizeNaverAddDate(post.addDate);
 
       const kst = toKSTDate(normalized);
       const kstDate = kst
@@ -457,6 +498,11 @@ function partsToDraftRaw(parts: ContentPart[]): string {
 
 // ── 제목 정리 ─────────────────────────────────────────────────────────────────
 
+/** 제목에 "시공사례"가 포함된 포스트만 가져온다 (정보성/홍보 글 제외) */
+function isWorkCasePost(title: string): boolean {
+  return /시공\s*사례/.test(title);
+}
+
 function cleanTitle(title: string): string {
   return title
     .replace(/^[\[<【〈\(]\s*시공\s*사례\s*[\]>】〉\)]\s*/i, '')
@@ -574,6 +620,8 @@ export async function POST(req: NextRequest) {
       source = 'page';
     }
 
+    const dateLabel = `${yyyy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+
     if (posts.length === 0) {
       return NextResponse.json({
         success: true,
@@ -581,19 +629,42 @@ export async function POST(req: NextRequest) {
         total: 0,
         results: [],
         source,
-        message: `RSS 및 블로그 목록 페이지 탐색 결과 ${yyyy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')} 날짜의 포스트를 찾지 못했습니다.`,
+        message: `RSS 및 블로그 목록 페이지 탐색 결과 ${dateLabel} 날짜의 포스트를 찾지 못했습니다.`,
         scrapeDebug,
       });
     }
 
-    const results: CrawlResult[] = [];
+    // 시공사례 글만 대상 (정보성/홍보 글 제외)
+    const skipped = posts.filter((p) => !isWorkCasePost(p.title));
+    posts = posts.filter((p) => isWorkCasePost(p.title));
+
+    if (posts.length === 0) {
+      return NextResponse.json({
+        success: true,
+        imported: 0,
+        total: 0,
+        results: skipped.map((p) => ({ title: p.title, success: false, error: '시공사례 글이 아님 (건너뜀)' })),
+        source,
+        message: `${dateLabel} 날짜의 포스트 ${skipped.length}건은 모두 시공사례 글이 아니라 건너뛰었습니다.`,
+        scrapeDebug,
+      });
+    }
+
+    const results: CrawlResult[] = skipped.map((p) => ({
+      title: p.title,
+      success: false,
+      error: '시공사례 글이 아님 (건너뜀)',
+    }));
 
     for (const item of posts) {
       try {
+        const cleanedTitle = cleanTitle(item.title);
+
+        // DB에는 정리된 제목이 저장되므로 정리된 제목으로 중복 확인
         const { data: existing } = await supabase
           .from('works')
           .select('id')
-          .eq('title', item.title)
+          .eq('title', cleanedTitle)
           .maybeSingle();
 
         if (existing) {
@@ -603,7 +674,6 @@ export async function POST(req: NextRequest) {
 
         const { draftRaw, firstImageUrl, _debug } = await fetchPostDetail(item.logNo);
         const thumbnail = firstImageUrl ? await imageToBase64(firstImageUrl) : '';
-        const cleanedTitle = cleanTitle(item.title);
         const category = detectCategory(cleanedTitle);
 
         const { error } = await supabase.from('works').insert({
